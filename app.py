@@ -71,7 +71,7 @@ if st.query_params and 'code' in st.query_params:
     
         st.session_state['spotify_client'] = spotipy.Spotify(auth=access_token)
     
-        st.experimental_rerun()
+        st.rerun()
         
     except Exception as e:
         st.error(f"Failed to authenticate with Spotify. Error: {e}")
@@ -109,4 +109,4 @@ else:
         
     if st.button("Logout"):
         st.session_state['spotify_client'] = None
-        st.experimental_rerun()
+        st.rerun()
