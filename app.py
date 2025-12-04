@@ -24,13 +24,13 @@ TIME_RANGE = 'medium_term' # short / medium / long
 
 
 st.set_page_config(
-    page_title="Spotify Buzzfeed",
+    page_title="Buzzify",
     page_icon="🎵",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-st.title("Spotify Buzzfeed")
+st.title("Buzzify")
 
 #------ functions 
 def get_oauth_manager():
@@ -56,6 +56,18 @@ def get_top_tracks(sp):
         st.error(f"Error fetching top tracks: {e}")
         return []
 
+def get_top_artists(sp):
+    """Fetches the user's top artists."""
+    try:
+        # Use current_user_top_artists instead of tracks
+        results = sp.current_user_top_artists(
+            limit=LIMIT, 
+            time_range=TIME_RANGE
+        )
+        return results['items']
+    except Exception as e:
+        st.error(f"Error fetching top artists: {e}")
+        return []
 
 
 if 'spotify_client' not in st.session_state:
@@ -63,21 +75,28 @@ if 'spotify_client' not in st.session_state:
 
 sp_oauth = get_oauth_manager()
 
-
+# --- AUTHENTICATION FLOW ---
 if st.query_params and 'code' in st.query_params:
     try:
+        # 1. Exchange the authorization code for an access token
         token_info = sp_oauth.get_access_token(st.query_params['code'], as_dict=True)
         access_token = token_info['access_token']
     
+        # 2. Create the Spotify client object
         st.session_state['spotify_client'] = spotipy.Spotify(auth=access_token)
     
-        st.rerun()
+        # 3. Rerun the app to enter the 'else' block and display content
+        #    st.experimental_rerun() is replaced with the modern st.rerun()
+        st.rerun() 
         
     except Exception as e:
         st.error(f"Failed to authenticate with Spotify. Error: {e}")
         st.session_state['spotify_client'] = None
+        # You may want to clear the query params here to clean the URL
+        # st.query_params.clear() 
 
 if st.session_state['spotify_client'] is None:
+    # --- LOGIN DISPLAY ---
     if CLIENT_ID == "YOUR_CLIENT_ID":
         st.error("Please set your Spotify Client ID and Secret in your .env file.")
         st.stop()
@@ -93,10 +112,29 @@ if st.session_state['spotify_client'] is None:
 
 
 else:
-    st.success("Successfully logged into Spotify! Fetching your data...")
+    # --- DASHBOARD DISPLAY ---
     sp = st.session_state['spotify_client']
+    
+    # Debug message to confirm this block is reached
+    st.success("Successfully logged into Spotify! Fetching your data...")
+    
+    # Fetch Data
+    top_artists = get_top_artists(sp)
     top_tracks = get_top_tracks(sp)
 
+    # Display Top Artists
+    if top_artists:
+        st.subheader(f"Your Top {LIMIT} Artists ({TIME_RANGE.replace('_', ' ').title()})")
+        
+        artist_list = []
+        for i, artist in enumerate(top_artists):
+            artist_list.append(f"{i+1}. **{artist['name']}**")
+        
+        st.markdown("\n".join(artist_list))
+
+    st.markdown("---")
+        
+    # Display Top Tracks
     if top_tracks:
         st.subheader(f"Your Top {LIMIT} Tracks ({TIME_RANGE.replace('_', ' ').title()})")
         
@@ -107,6 +145,8 @@ else:
         
         st.markdown("\n".join(track_list))
         
+    # Logout Button
     if st.button("Logout"):
         st.session_state['spotify_client'] = None
+        # Use the modern Streamlit rerun command
         st.rerun()
