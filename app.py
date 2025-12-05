@@ -88,10 +88,15 @@ sp_oauth = get_oauth_manager()
 # --- AUTHENTICATION FLOW ---
 if st.query_params and 'code' in st.query_params:
     try:
-        token_info = sp_oauth.get_access_token(st.query_params['code'], as_dict=True)
-        access_token = token_info['access_token']
+        token_info = sp_oauth.get_access_token(st.query_params['code'])
+        if isinstance(token_info, dict):
+            access_token = token_info['access_token']
+        else:
+            access_token = token_info
+       # access_token = token_info['access_token']
         st.session_state['spotify_client'] = spotipy.Spotify(auth=access_token)
         #    st.experimental_rerun() is replaced with the modern st.rerun()
+        st.query_params.clear()
         st.rerun() 
         
     except Exception as e:
