@@ -16,6 +16,16 @@ CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
 CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
 REDIRECT_URI = os.getenv('SPOTIPY_REDIRECT_URI') 
 
+if 'SPOTIPY_CLIENT_ID' in st.secrets:
+    CLIENT_ID = st.secrets['SPOTIPY_CLIENT_ID']
+    CLIENT_SECRET = st.secrets['SPOTIPY_CLIENT_SECRET']
+    REDIRECT_URI = st.secrets['SPOTIPY_REDIRECT_URI']
+else:
+    # Fallback for local testing with .env
+    load_dotenv()
+    CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
+    CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
+    REDIRECT_URI = os.getenv('SPOTIPY_REDIRECT_URI')
 
 #--- global variables 
 SCOPE = "user-top-read"
@@ -78,25 +88,18 @@ sp_oauth = get_oauth_manager()
 # --- AUTHENTICATION FLOW ---
 if st.query_params and 'code' in st.query_params:
     try:
-        # 1. Exchange the authorization code for an access token
         token_info = sp_oauth.get_access_token(st.query_params['code'], as_dict=True)
         access_token = token_info['access_token']
-    
-        # 2. Create the Spotify client object
         st.session_state['spotify_client'] = spotipy.Spotify(auth=access_token)
-    
-        # 3. Rerun the app to enter the 'else' block and display content
         #    st.experimental_rerun() is replaced with the modern st.rerun()
         st.rerun() 
         
     except Exception as e:
         st.error(f"Failed to authenticate with Spotify. Error: {e}")
         st.session_state['spotify_client'] = None
-        # You may want to clear the query params here to clean the URL
-        # st.query_params.clear() 
+        st.query_params.clear() 
 
 if st.session_state['spotify_client'] is None:
-    # --- LOGIN DISPLAY ---
     if CLIENT_ID == "YOUR_CLIENT_ID":
         st.error("Please set your Spotify Client ID and Secret in your .env file.")
         st.stop()
