@@ -9,6 +9,8 @@ import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
+import pandas as pd
+from collections import Counter
 
 # TODO: make a web URI so spotify doesn't scream
 load_dotenv()
