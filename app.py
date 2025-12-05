@@ -47,7 +47,7 @@ st.title("Buzzify")
 def load_artist_genres():
     """Load the artist-genre mapping from CSV."""
     try:
-        df = pd.read_csv('data/artist_genres.csv')
+        df = pd.read_csv('artist_genre.csv')
         # Create a dictionary for faster lookup
         artist_dict = {}
         for _, row in df.iterrows():
