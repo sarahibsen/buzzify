@@ -2,4 +2,3 @@ streamlit
 spotipy
 python-dotenv
 pandas
-collections
