@@ -1,18 +1,19 @@
-import musicbrainzngs
-import time
+import json
 
-musicbrainzngs.set_useragent("Buzzify", "1.0", "your@email.com")
 
-def get_musicbrainz_genres(artist_name):
-    """Search MusicBrainz for artist genres."""
-    try:
-        result = musicbrainzngs.search_artists(artist=artist_name, limit=1)
-        if result['artist-list']:
-            artist_id = result['artist-list'][0]['id']
-            artist_detail = musicbrainzngs.get_artist_by_id(artist_id, includes=['tags'])
-            tags = artist_detail['artist'].get('tag-list', [])
-            return [tag['name'] for tag in tags[:5]]  # Top 5 tags
-    except:
-        return []
-    time.sleep(1)  # Rate limiting
-    return []
+# Load genres from genres.jl
+def load_genres(filepath='data/genres.jl'):
+    """Load the genre list from JSON Lines file."""
+    genres = []
+    with open(filepath, 'r', encoding='utf-8') as f:
+        for line in f:
+            genre_data = json.loads(line)
+            genres.append(genre_data['name'])
+    return genres
+
+available_genres = load_genres()
+print(f"Loaded {len(available_genres)} genres")
+
+def load_artists(): 
+    """ load in the artist lists """
+    pass 
